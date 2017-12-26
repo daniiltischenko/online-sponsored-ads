@@ -1,6 +1,7 @@
 package com.mabaya.controller;
 
 import com.mabaya.model.Campaign;
+import com.mabaya.model.Product;
 import com.mabaya.model.ProductCategory;
 import com.mabaya.service.CampaignService;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 /**
  * @author Daniil Tyshchenko
@@ -37,9 +39,25 @@ public class CampaignController {
                                                    @RequestParam BigDecimal bid) {
         LOGGER.info("Received request to create campaign with name: [{}], starting on: [{}], of category: [{}] and price: [{}]",
                 name, startDate, category, bid);
-        Campaign createdCampaign = campaignService.createCampaign(new Campaign());
+        Campaign createdCampaign = campaignService.createCampaign(name, startDate, category, bid);
 
         return new ResponseEntity<>(createdCampaign, HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value = "", method = RequestMethod.GET)
+    public ResponseEntity<Object> getAds(@RequestParam ProductCategory category) {
+
+        Optional<Product> product = campaignService.retrieveProductWithHighestBidForCategory(category);
+
+        Object response;
+        if (product.isPresent()) {
+            response = product.get();
+        } else {
+            response = campaignService.getCampaignWithMaxBid();
+
+        }
+
+        return new ResponseEntity(response, HttpStatus.OK);
     }
 
 }
